@@ -27,11 +27,11 @@ import org.activiti.bpmn.model.Transaction;
 import org.activiti.engine.ActivitiIllegalArgumentException;
 import org.activiti.engine.impl.bpmn.helper.ScopeUtil;
 import org.activiti.engine.impl.context.Context;
+import org.activiti.engine.impl.delegate.ActivityBehavior;
+import org.activiti.engine.impl.delegate.ActivityExecution;
 import org.activiti.engine.impl.interceptor.CommandContext;
 import org.activiti.engine.impl.persistence.entity.ExecutionEntity;
 import org.activiti.engine.impl.persistence.entity.ExecutionEntityManager;
-import org.activiti.engine.impl.pvm.delegate.ActivityBehavior;
-import org.activiti.engine.impl.pvm.delegate.ActivityExecution;
 import org.activiti.engine.impl.util.tree.ExecutionTree;
 import org.activiti.engine.impl.util.tree.ExecutionTreeNode;
 import org.apache.commons.collections.CollectionUtils;
@@ -104,6 +104,7 @@ public class ParallelMultiInstanceBehavior extends MultiInstanceActivityBehavior
 
     if (resolveNrOfInstances(execution) == 0) {
       // Empty collection, just leave.
+      removeLocalLoopVariable(execution, getCollectionElementIndexVariable());
       super.leave(execution);
     }
 
@@ -195,6 +196,7 @@ public class ParallelMultiInstanceBehavior extends MultiInstanceActivityBehavior
       }
 
     } else {
+      removeLocalLoopVariable(execution, getCollectionElementIndexVariable());
       super.leave(executionEntity);
     }
   }

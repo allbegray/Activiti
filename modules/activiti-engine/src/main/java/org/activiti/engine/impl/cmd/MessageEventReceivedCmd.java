@@ -13,17 +13,18 @@
 
 package org.activiti.engine.impl.cmd;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.activiti.engine.ActivitiException;
 import org.activiti.engine.ActivitiIllegalArgumentException;
+import org.activiti.engine.compatibility.Activiti5CompatibilityHandler;
 import org.activiti.engine.impl.event.MessageEventHandler;
 import org.activiti.engine.impl.interceptor.CommandContext;
 import org.activiti.engine.impl.persistence.entity.EventSubscriptionEntity;
 import org.activiti.engine.impl.persistence.entity.ExecutionEntity;
+import org.activiti.engine.impl.util.Activiti5Util;
 
 /**
  * @author Daniel Meyer
@@ -33,7 +34,7 @@ public class MessageEventReceivedCmd extends NeedsActiveExecutionCmd<Void> {
 
   private static final long serialVersionUID = 1L;
 
-  protected final Serializable payload;
+  protected final Map<String, Object> payload;
   protected final String messageName;
   protected final boolean async;
 
@@ -42,11 +43,7 @@ public class MessageEventReceivedCmd extends NeedsActiveExecutionCmd<Void> {
     this.messageName = messageName;
 
     if (processVariables != null) {
-      if (processVariables instanceof Serializable) {
-        this.payload = (Serializable) processVariables;
-      } else {
-        this.payload = new HashMap<String, Object>(processVariables);
-      }
+      this.payload = new HashMap<String, Object>(processVariables);
 
     } else {
       this.payload = null;
@@ -64,6 +61,12 @@ public class MessageEventReceivedCmd extends NeedsActiveExecutionCmd<Void> {
   protected Void execute(CommandContext commandContext, ExecutionEntity execution) {
     if (messageName == null) {
       throw new ActivitiIllegalArgumentException("messageName cannot be null");
+    }
+    
+    if (Activiti5Util.isActiviti5ProcessDefinitionId(commandContext, execution.getProcessDefinitionId())) {
+      Activiti5CompatibilityHandler activiti5CompatibilityHandler = Activiti5Util.getActiviti5CompatibilityHandler(commandContext); 
+      activiti5CompatibilityHandler.messageEventReceived(messageName, executionId, payload, async);
+      return null;
     }
 
     List<EventSubscriptionEntity> eventSubscriptions = commandContext.getEventSubscriptionEntityManager().

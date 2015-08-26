@@ -21,7 +21,6 @@ import org.activiti.engine.impl.context.Context;
 import org.activiti.engine.impl.interceptor.CommandContext;
 import org.activiti.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.activiti.engine.impl.util.ProcessDefinitionUtil;
-import org.activiti.engine.repository.ProcessDefinition;
 
 /**
  * Class capable of dispatching events.
@@ -66,25 +65,16 @@ public class ActivitiEventDispatcherImpl implements ActivitiEventDispatcher {
       eventSupport.dispatchEvent(event);
     }
 
-    // Check if a process context is active. If so, we also call the
-    // process-definition
-    // specific listeners (if any).
-    if (Context.isExecutionContextActive()) {
-      ProcessDefinitionEntity definition = Context.getExecutionContext().getProcessDefinition();
-      if (definition != null) {
-        definition.getEventSupport().dispatchEvent(event);
-      }
-    } else {
-      // Try getting hold of the Process definition, based on the process
-      // definition-key, if a context is active
-      CommandContext commandContext = Context.getCommandContext();
-      if (commandContext != null) {
-        ProcessDefinitionEntity processDefinition = extractProcessDefinitionEntityFromEvent(event);
-        if (processDefinition != null) {
-          processDefinition.getEventSupport().dispatchEvent(event);
-        }
+    // Try getting hold of the Process definition, based on the process
+    // definition-key, if a context is active
+    CommandContext commandContext = Context.getCommandContext();
+    if (commandContext != null) {
+      ProcessDefinitionEntity processDefinition = extractProcessDefinitionEntityFromEvent(event);
+      if (processDefinition != null) {
+        processDefinition.getEventSupport().dispatchEvent(event);
       }
     }
+    
   }
 
   /**

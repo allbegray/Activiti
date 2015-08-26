@@ -59,7 +59,8 @@ public class ProcessInstanceUtil {
     CommandContext commandContext = Context.getCommandContext(); // Todo: ideally, context should be passed here
     if (Activiti5Util.isActiviti5ProcessDefinition(commandContext, processDefinition)) {
       Activiti5CompatibilityHandler activiti5CompatibilityHandler = Activiti5Util.getActiviti5CompatibilityHandler(commandContext); 
-      return activiti5CompatibilityHandler.startProcessInstance(processDefinition.getKey(), processDefinition.getId(), variables, businessKey, processDefinition.getTenantId(), processInstanceName);
+      return activiti5CompatibilityHandler.startProcessInstance(processDefinition.getKey(), processDefinition.getId(), 
+          variables, businessKey, processDefinition.getTenantId(), processInstanceName);
     }
 
     // Do not start process a process instance if the process definition is suspended
@@ -92,7 +93,8 @@ public class ProcessInstanceUtil {
           throw new ActivitiException("Found Activiti 5 process definition, but no compatibility handler on the classpath");
         }
 
-        return activiti5CompatibilityHandler.startProcessInstance(processDefinition.getKey(), processDefinition.getId(), variables, null, processDefinition.getTenantId(), null);
+        return activiti5CompatibilityHandler.startProcessInstanceByMessage(messageName, variables, null, processDefinition.getTenantId());
+      
       } else {
         throw new ActivitiException("Invalid 'engine' for process definition " + processDefinition.getId() + " : " + processDefinition.getEngineVersion());
       }

@@ -65,11 +65,12 @@ public abstract class EventSubscriptionEntity implements PersistentObject, HasRe
     setExecution(executionEntity);
     setActivity(execution.getActivity());
     this.processInstanceId = executionEntity.getProcessInstanceId();
+    this.processDefinitionId = executionEntity.getProcessDefinitionId();
   }
   
   // processing /////////////////////////////
   
-  public void eventReceived(Serializable payload, boolean processASync) {
+  public void eventReceived(Object payload, boolean processASync) {
     if(processASync) {
       scheduleEventAsync(payload);
     } else {
@@ -85,7 +86,7 @@ public abstract class EventSubscriptionEntity implements PersistentObject, HasRe
     eventHandler.handleEvent(this, payload, Context.getCommandContext());
   }
   
-  protected void scheduleEventAsync(Serializable payload) {
+  protected void scheduleEventAsync(Object payload) {
     
     final CommandContext commandContext = Context.getCommandContext();
 
@@ -93,6 +94,8 @@ public abstract class EventSubscriptionEntity implements PersistentObject, HasRe
     message.setJobHandlerType(ProcessEventJobHandler.TYPE);
     message.setJobHandlerConfiguration(id);
     message.setTenantId(getTenantId());
+    message.setProcessDefinitionId(getProcessDefinitionId());
+    message.setProcessInstanceId(getProcessInstanceId());
     
     GregorianCalendar expireCal = new GregorianCalendar();
     ProcessEngineConfiguration processEngineConfig = Context.getCommandContext().getProcessEngineConfiguration();

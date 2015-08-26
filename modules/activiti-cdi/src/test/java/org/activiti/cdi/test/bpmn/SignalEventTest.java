@@ -80,9 +80,6 @@ public class SignalEventTest extends CdiActivitiTestCase {
     assertEquals("catchSignal-visited (was catchSignal)", runtimeService.getVariable(piCatchSignal.getId(), "processName"));
     assertEquals("throwSignal-visited (was throwSignal)", runtimeService.getVariable(piThrowSignal.getId(), "processName"));
 
-    // clean up
-    runtimeService.signal(piCatchSignal.getId());
-    runtimeService.signal(piThrowSignal.getId());
   }
 
 }

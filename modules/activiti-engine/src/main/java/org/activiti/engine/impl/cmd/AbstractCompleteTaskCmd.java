@@ -16,21 +16,19 @@ import java.util.List;
 import java.util.Map;
 
 import org.activiti.engine.ActivitiException;
-import org.activiti.engine.compatibility.Activiti5CompatibilityHandler;
 import org.activiti.engine.delegate.DelegateTask;
 import org.activiti.engine.delegate.TaskListener;
 import org.activiti.engine.delegate.event.ActivitiEventDispatcher;
 import org.activiti.engine.delegate.event.ActivitiEventType;
 import org.activiti.engine.delegate.event.impl.ActivitiEventBuilder;
 import org.activiti.engine.impl.context.Context;
-import org.activiti.engine.impl.delegate.TaskListenerInvocation;
+import org.activiti.engine.impl.delegate.invocation.TaskListenerInvocation;
 import org.activiti.engine.impl.identity.Authentication;
 import org.activiti.engine.impl.interceptor.CommandContext;
 import org.activiti.engine.impl.persistence.entity.ExecutionEntity;
 import org.activiti.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.activiti.engine.impl.persistence.entity.TaskEntity;
 import org.activiti.engine.impl.task.TaskDefinition;
-import org.activiti.engine.impl.util.Activiti5Util;
 import org.activiti.engine.impl.util.ProcessDefinitionUtil;
 import org.activiti.engine.task.DelegationState;
 import org.activiti.engine.task.IdentityLinkType;
@@ -39,23 +37,14 @@ import org.activiti.engine.task.IdentityLinkType;
  * @author Joram Barrez
  */
 public abstract class AbstractCompleteTaskCmd extends NeedsActiveTaskCmd<Void> {
+  
+  private static final long serialVersionUID = 1L;
 
   public AbstractCompleteTaskCmd(String taskId) {
     super(taskId);
   }
 
   protected void executeTaskComplete(CommandContext commandContext, TaskEntity taskEntity, Map<String, Object> variables, boolean localScope) {
-    
-    // Backwards compatibility
-    if (taskEntity.getProcessDefinitionId() != null) {
-      ProcessDefinitionEntity processDefinitionEntity = ProcessDefinitionUtil.getProcessDefinitionEntity(taskEntity.getProcessDefinitionId());
-      if (Activiti5Util.isActiviti5ProcessDefinition(commandContext, processDefinitionEntity)) {
-        Activiti5CompatibilityHandler activiti5CompatibilityHandler = Activiti5Util.getActiviti5CompatibilityHandler(commandContext); 
-        activiti5CompatibilityHandler.completeTask(taskEntity, variables, localScope);
-        return;
-      }
-    }
-    
     // Task complete logic
     
     if (taskEntity.getDelegationState() != null && taskEntity.getDelegationState().equals(DelegationState.PENDING)) {

@@ -28,9 +28,9 @@ import org.activiti.engine.delegate.Expression;
 import org.activiti.engine.impl.bpmn.behavior.AbstractBpmnActivityBehavior;
 import org.activiti.engine.impl.bpmn.helper.ErrorPropagation;
 import org.activiti.engine.impl.context.Context;
+import org.activiti.engine.impl.delegate.ActivityBehavior;
+import org.activiti.engine.impl.delegate.ActivityExecution;
 import org.activiti.engine.impl.persistence.entity.ExecutionEntity;
-import org.activiti.engine.impl.pvm.delegate.ActivityBehavior;
-import org.activiti.engine.impl.pvm.delegate.ActivityExecution;
 import org.activiti.engine.impl.util.ProcessDefinitionUtil;
 import org.activiti.spring.SpringProcessEngineConfiguration;
 import org.apache.camel.CamelContext;
@@ -109,7 +109,11 @@ public abstract class CamelBehavior extends AbstractBpmnActivityBehavior impleme
     final ActivitiEndpoint endpoint = createEndpoint(execution);
     final Exchange exchange = createExchange(execution, endpoint);
 
-    endpoint.process(exchange);
+    try {
+      endpoint.process(exchange);
+    } catch (Exception e) {
+      throw new ActivitiException("Exception while processing exchange", e);
+    }
     execution.setVariables(ExchangeUtils.prepareVariables(exchange, endpoint));
     if (!handleCamelException(exchange, execution))
       leave(execution);

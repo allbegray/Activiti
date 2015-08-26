@@ -40,7 +40,6 @@ import org.activiti.engine.impl.persistence.entity.HistoricVariableInstanceEntit
 import org.activiti.engine.impl.persistence.entity.IdentityLinkEntity;
 import org.activiti.engine.impl.persistence.entity.TaskEntity;
 import org.activiti.engine.impl.persistence.entity.VariableInstanceEntity;
-import org.activiti.engine.impl.pvm.runtime.InterpretableExecution;
 import org.activiti.engine.task.Event;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -376,7 +375,7 @@ public class DefaultHistoryManager extends AbstractManager implements HistoryMan
    */
   @Override
   @SuppressWarnings({ "unchecked", "rawtypes" })
-  public void recordExecutionReplacedBy(ExecutionEntity execution, InterpretableExecution replacedBy) {
+  public void recordExecutionReplacedBy(ExecutionEntity execution, ExecutionEntity replacedBy) {
     if (isHistoryLevelAtLeast(HistoryLevel.ACTIVITY)) {
 
       // Update the cached historic activity instances that are open
@@ -726,6 +725,8 @@ public class DefaultHistoryManager extends AbstractManager implements HistoryMan
 
   // Comment related history
 
+  
+  
   /*
    * (non-Javadoc)
    * 
@@ -734,6 +735,21 @@ public class DefaultHistoryManager extends AbstractManager implements HistoryMan
   @Override
   public void createIdentityLinkComment(String taskId, String userId, String groupId, String type, boolean create) {
     createIdentityLinkComment(taskId, userId, groupId, type, create, false);
+  }
+
+  @Override
+  public void createUserIdentityLinkComment(String taskId, String userId, String type, boolean create) {
+    createIdentityLinkComment(taskId, userId, null, type, create, false);
+  }
+
+  @Override
+  public void createGroupIdentityLinkComment(String taskId, String groupId, String type, boolean create) {
+    createIdentityLinkComment(taskId, null, groupId, type, create, false);
+  }
+  
+  @Override
+  public void createUserIdentityLinkComment(String taskId, String userId, String type, boolean create, boolean forceNullUserId) {
+    createIdentityLinkComment(taskId, userId, null, type, create, forceNullUserId);
   }
 
   /*

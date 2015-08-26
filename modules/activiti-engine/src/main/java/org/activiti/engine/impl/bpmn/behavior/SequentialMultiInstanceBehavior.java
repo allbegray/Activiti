@@ -22,9 +22,9 @@ import org.activiti.engine.ActivitiException;
 import org.activiti.engine.ActivitiIllegalArgumentException;
 import org.activiti.engine.delegate.BpmnError;
 import org.activiti.engine.impl.bpmn.helper.ScopeUtil;
+import org.activiti.engine.impl.delegate.ActivityBehavior;
+import org.activiti.engine.impl.delegate.ActivityExecution;
 import org.activiti.engine.impl.persistence.entity.ExecutionEntity;
-import org.activiti.engine.impl.pvm.delegate.ActivityBehavior;
-import org.activiti.engine.impl.pvm.delegate.ActivityExecution;
 import org.apache.commons.collections.CollectionUtils;
 
 /**
@@ -73,9 +73,7 @@ public class SequentialMultiInstanceBehavior extends MultiInstanceActivityBehavi
     setLoopVariable(execution, NUMBER_OF_COMPLETED_INSTANCES, nrOfCompletedInstances);
     logLoopDetails(execution, "instance completed", loopCounter, nrOfCompletedInstances, nrOfActiveInstances, nrOfInstances);
     
-    if (loopCounter != nrOfInstances && !completionConditionSatisfied(execution)) {
-      callActivityEndListeners(execution);
-    }
+    callActivityEndListeners(execution);
     
     //executeCompensationBoundaryEvents(execution.getCurrentFlowElement(), execution);
 
@@ -108,6 +106,7 @@ public class SequentialMultiInstanceBehavior extends MultiInstanceActivityBehavi
         ScopeUtil.createCopyOfSubProcessExecutionForCompensation(executionEntity, executionEntity.getParent());
       }
       
+      removeLocalLoopVariable(execution, getCollectionElementIndexVariable());
       super.leave(execution);
       
     } else {

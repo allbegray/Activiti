@@ -13,6 +13,7 @@
 package org.activiti.engine.impl.asyncexecutor;
 
 import org.activiti.engine.ActivitiOptimisticLockingException;
+import org.activiti.engine.compatibility.Activiti5CompatibilityHandler;
 import org.activiti.engine.delegate.event.ActivitiEventType;
 import org.activiti.engine.delegate.event.impl.ActivitiEventBuilder;
 import org.activiti.engine.impl.cmd.ExecuteAsyncJobCmd;
@@ -24,6 +25,7 @@ import org.activiti.engine.impl.interceptor.CommandContext;
 import org.activiti.engine.impl.interceptor.CommandExecutor;
 import org.activiti.engine.impl.jobexecutor.FailedJobCommandFactory;
 import org.activiti.engine.impl.persistence.entity.JobEntity;
+import org.activiti.engine.impl.util.Activiti5Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +46,21 @@ public class ExecuteAsyncRunnable implements Runnable {
   }
 
   public void run() {
+    Boolean isActiviti5ProcessDefinition = commandExecutor.execute(new Command<Boolean>() {
+
+      @Override
+      public Boolean execute(CommandContext commandContext) {
+        boolean isActiviti5 = Activiti5Util.isActiviti5ProcessDefinitionId(commandContext, job.getProcessDefinitionId());
+        if (isActiviti5) {
+          commandContext.getProcessEngineConfiguration().getActiviti5CompatibilityHandler().executeJobWithLockAndRetry(job);
+        }
+        return isActiviti5;
+      }
+    });
+    
+    if (isActiviti5ProcessDefinition) {  
+      return;
+    }
     
     try {
       if (job.isExclusive()) {
@@ -64,8 +81,6 @@ public class ExecuteAsyncRunnable implements Runnable {
       return;
       
     }
-
-    
 
     try {
       commandExecutor.execute(new ExecuteAsyncJobCmd(job));
@@ -116,6 +131,12 @@ public class ExecuteAsyncRunnable implements Runnable {
 
       @Override
       public Void execute(CommandContext commandContext) {
+        if (job.getProcessDefinitionId() != null && Activiti5Util.isActiviti5ProcessDefinitionId(commandContext, job.getProcessDefinitionId())) {
+          Activiti5CompatibilityHandler activiti5CompatibilityHandler = Activiti5Util.getActiviti5CompatibilityHandler(commandContext); 
+          activiti5CompatibilityHandler.handleFailedJob(job, exception);
+          return null;
+        }
+        
         CommandConfig commandConfig = commandExecutor.getDefaultConfig().transactionRequiresNew();
         FailedJobCommandFactory failedJobCommandFactory = commandContext.getFailedJobCommandFactory();
         Command<Object> cmd = failedJobCommandFactory.getCommand(job.getId(), exception);

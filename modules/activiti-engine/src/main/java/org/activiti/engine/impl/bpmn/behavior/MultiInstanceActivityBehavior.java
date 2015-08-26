@@ -34,11 +34,11 @@ import org.activiti.engine.delegate.Expression;
 import org.activiti.engine.impl.bpmn.helper.ErrorPropagation;
 import org.activiti.engine.impl.bpmn.parser.factory.ListenerFactory;
 import org.activiti.engine.impl.context.Context;
+import org.activiti.engine.impl.delegate.ActivityBehavior;
+import org.activiti.engine.impl.delegate.ActivityExecution;
+import org.activiti.engine.impl.delegate.SubProcessActivityBehavior;
 import org.activiti.engine.impl.history.handler.ActivityInstanceStartHandler;
 import org.activiti.engine.impl.persistence.entity.ExecutionEntity;
-import org.activiti.engine.impl.pvm.delegate.ActivityBehavior;
-import org.activiti.engine.impl.pvm.delegate.ActivityExecution;
-import org.activiti.engine.impl.pvm.delegate.SubProcessActivityBehavior;
 import org.activiti.engine.impl.util.ProcessDefinitionUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
@@ -283,6 +283,10 @@ public abstract class MultiInstanceActivityBehavior extends FlowNodeActivityBeha
     return (Integer) execution.getVariableLocal(variableName);
   }
   
+  protected void removeLocalLoopVariable(ActivityExecution execution, String variableName) {
+    execution.removeVariableLocal(variableName);
+  }
+  
   /**
    * Since the first loop of the multi instance is not executed as a regular activity,
    * it is needed to call the start listeners yourself.
@@ -313,6 +317,13 @@ public abstract class MultiInstanceActivityBehavior extends FlowNodeActivityBeha
             executionListener = listenerFactory.createExpressionExecutionListener(activitiListener);
           } else if (ImplementationType.IMPLEMENTATION_TYPE_DELEGATEEXPRESSION.equalsIgnoreCase(activitiListener.getImplementationType())) {
             executionListener = listenerFactory.createDelegateExpressionExecutionListener(activitiListener);
+          } else if (ImplementationType.IMPLEMENTATION_TYPE_INSTANCE.equalsIgnoreCase(activitiListener.getImplementationType())) {
+            Object executionListenerInstance = activitiListener.getInstance();
+            if (executionListenerInstance instanceof ExecutionListener) {
+              executionListener = (ExecutionListener) executionListenerInstance;
+            } else {
+              LOGGER.warn("Execution listener instance " + executionListenerInstance + " is not of type " + ExecutionListener.class);
+            }
           }
 
           if (executionListener != null) {
@@ -350,6 +361,13 @@ public abstract class MultiInstanceActivityBehavior extends FlowNodeActivityBeha
             executionListener = listenerFactory.createExpressionExecutionListener(activitiListener);
           } else if (ImplementationType.IMPLEMENTATION_TYPE_DELEGATEEXPRESSION.equalsIgnoreCase(activitiListener.getImplementationType())) {
             executionListener = listenerFactory.createDelegateExpressionExecutionListener(activitiListener);
+          } else if (ImplementationType.IMPLEMENTATION_TYPE_INSTANCE.equalsIgnoreCase(activitiListener.getImplementationType())) {
+            Object executionListenerInstance = activitiListener.getInstance();
+            if (executionListenerInstance instanceof ExecutionListener) {
+              executionListener = (ExecutionListener) executionListenerInstance;
+            } else {
+              LOGGER.warn("Execution listener instance " + executionListenerInstance + " is not of type " + ExecutionListener.class);
+            }
           }
 
           if (executionListener != null) {
